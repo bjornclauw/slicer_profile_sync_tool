@@ -26,6 +26,7 @@ import customtkinter as ctk
 from . import theme as T
 from .widgets import (
     CheckboxFileTree,
+    DiffViewer,
     FileTreeItem,
     LogPanel,
     action_button,
@@ -46,6 +47,7 @@ class MigrateView(ctk.CTkFrame):
         self._app = app_ref
         self._slicers = []
         self._src_files: list[tuple[Path, str, str]] = []  # (path, type, name)
+        self._show_diff_full = False
         self._build_ui()
 
     # ─── UI construction ──────────────────────────────────────────────────────
@@ -140,15 +142,16 @@ class MigrateView(ctk.CTkFrame):
         self._dst_path_lbl.grid(row=1, column=3, columnspan=2, sticky="w",
                                 padx=(T.PAD_SM, T.PAD), pady=(0, T.PAD_SM))
 
-        # ── File tree + buttons ──
-        mid = ctk.CTkFrame(self, fg_color="transparent")
-        mid.grid(row=2, column=0, sticky="nsew", padx=T.PAD_LG)
-        mid.rowconfigure(0, weight=1)
-        mid.columnconfigure(0, weight=1)
+        # ── Main split: tree (left) + diff (right) ──
+        split = ctk.CTkFrame(self, fg_color="transparent")
+        split.grid(row=2, column=0, sticky="nsew", padx=T.PAD_LG)
+        split.rowconfigure(0, weight=1)
+        split.columnconfigure(0, weight=2)
+        split.columnconfigure(1, weight=3)
 
-        tree_wrap = ctk.CTkFrame(mid, fg_color=T.BG_CARD,
+        tree_wrap = ctk.CTkFrame(split, fg_color=T.BG_CARD,
                                  corner_radius=T.CORNER_RADIUS)
-        tree_wrap.grid(row=0, column=0, sticky="nsew")
+        tree_wrap.grid(row=0, column=0, sticky="nsew", padx=(0, T.PAD_SM))
         tree_wrap.rowconfigure(1, weight=1)
         tree_wrap.columnconfigure(0, weight=1)
 
@@ -160,15 +163,48 @@ class MigrateView(ctk.CTkFrame):
                                                        size=12, weight="bold"),
                                       anchor="w")
         self._tree_lbl.pack(side="left")
-        secondary_button(tree_hdr, "All",
-                         lambda: self._tree.select_all(), width=60).pack(
-            side="right", padx=(T.PAD_SM, 0))
-        secondary_button(tree_hdr, "None",
-                         lambda: self._tree.select_none(), width=60).pack(
-            side="right", padx=(T.PAD_SM, 0))
+        
+        self._sel_inv_btn = secondary_button(tree_hdr, "Invert",
+                                             lambda: self._tree.invert(), width=48)
+        self._sel_none_btn = secondary_button(tree_hdr, "None",
+                                              lambda: self._tree.select_none(), width=40)
+        self._sel_all_btn = secondary_button(tree_hdr, "All",
+                                             lambda: self._tree.select_all(), width=40)
+        self._sel_inv_btn.pack(side="right", padx=(T.PAD_SM, 0))
+        self._sel_none_btn.pack(side="right", padx=(T.PAD_SM, 0))
+        self._sel_all_btn.pack(side="right", padx=(T.PAD_SM, 0))
 
-        self._tree = CheckboxFileTree(tree_wrap)
+        self._tree = CheckboxFileTree(
+            tree_wrap, 
+            on_select=self._on_sel_changed,
+            on_click=self._on_file_click
+        )
         self._tree.grid(row=1, column=0, sticky="nsew",
+                        padx=T.PAD_SM, pady=T.PAD_SM)
+
+        # Diff viewer
+        diff_wrap = ctk.CTkFrame(split, fg_color=T.BG_CARD,
+                                 corner_radius=T.CORNER_RADIUS)
+        diff_wrap.grid(row=0, column=1, sticky="nsew")
+        diff_wrap.rowconfigure(1, weight=1)
+        diff_wrap.columnconfigure(0, weight=1)
+
+        diff_hdr = ctk.CTkFrame(diff_wrap, fg_color="transparent")
+        diff_hdr.grid(row=0, column=0, sticky="ew",
+                      padx=T.PAD, pady=(T.PAD_SM, 0))
+        self._diff_title = ctk.CTkLabel(diff_hdr, text="Diff",
+                                        text_color=T.TEXT_SECONDARY,
+                                        font=ctk.CTkFont(family="Segoe UI",
+                                                         size=12, weight="bold"),
+                                        anchor="w")
+        self._diff_title.pack(side="left")
+        self._diff_full_btn = secondary_button(diff_hdr, "Full File",
+                                               self._toggle_diff_full,
+                                               width=80)
+        self._diff_full_btn.pack(side="right")
+
+        self._diff = DiffViewer(diff_wrap)
+        self._diff.grid(row=1, column=0, sticky="nsew",
                         padx=T.PAD_SM, pady=T.PAD_SM)
 
         # ── Bottom ──
@@ -227,6 +263,9 @@ class MigrateView(ctk.CTkFrame):
     def _on_dst_changed(self, value: str) -> None:
         d = self._get_slicer_dir(value)
         self._dst_path_lbl.configure(text=str(d) if d else "(not detected)")
+        src_d = self._get_slicer_dir(self._src_var.get())
+        if src_d:
+            self._load_src_files(src_d)
 
     def _load_src_files(self, src_dir: Path) -> None:
         """Scan source slicer directory and populate tree."""
@@ -237,25 +276,84 @@ class MigrateView(ctk.CTkFrame):
             self._count_lbl.configure(text="")
             return
 
+        dst_name = self._dst_var.get()
+        dst_dir = self._get_slicer_dir(dst_name)
+
         total = 0
         for json_file in sorted(src_dir.rglob("*.json")):
             rel = json_file.relative_to(src_dir)
             ptype = rel.parts[0].capitalize() if rel.parts else "Other"
-            item = FileTreeItem(f"  {json_file.name}", json_file,
-                                tag="modified", extra={"src": json_file,
-                                                       "rel": rel})
+            
+            tag = "new"
+            lbl_prefix = "✦  "
+            
+            if dst_dir:
+                dst_file = dst_dir / rel
+                if dst_file.exists():
+                    try:
+                        src_text = json_file.read_text(encoding="utf-8", errors="replace")
+                        dst_text = dst_file.read_text(encoding="utf-8", errors="replace")
+                        if src_text == dst_text:
+                            tag = "same"
+                            lbl_prefix = "  "
+                        else:
+                            tag = "modified"
+                            lbl_prefix = "✎  "
+                    except OSError:
+                        tag = "modified"
+                        lbl_prefix = "✎  "
+
+            item = FileTreeItem(f"{lbl_prefix}{json_file.name}", json_file,
+                                tag=tag, extra={"src": json_file,
+                                                "rel": rel,
+                                                "dst": dst_dir / rel if dst_dir else None})
             groups.setdefault(ptype, []).append(item)
             total += 1
 
-        self._tree.load(groups, default_checked=True)
+        self._tree.load(groups, default_checked=False)
+        for item in self._tree._items:
+            if item.tag in ("new", "modified"):
+                item.var.set(True)
+
         self._tree_lbl.configure(text=f"Source profiles  ({total} files)")
-        self._count_lbl.configure(text=f"{total} / {total} selected")
+        sel, total_count = self._tree.count()
+        self._count_lbl.configure(text=f"{sel} / {total_count} selected")
         self._tree._on_select = self._on_sel_changed
         self._src_files = []
 
     def _on_sel_changed(self, selected) -> None:
         sel, total = self._tree.count()
         self._count_lbl.configure(text=f"{sel} / {total} selected")
+
+    def _on_file_click(self, item: FileTreeItem) -> None:
+        """Show diff for the clicked file."""
+        if not item.extra:
+            return
+        
+        src_file = item.extra.get("src")
+        dst_file = item.extra.get("dst")
+        
+        try:
+            new_text = src_file.read_text(encoding="utf-8", errors="replace") if src_file and src_file.exists() else ""
+        except OSError:
+            new_text = ""
+            
+        try:
+            old_text = dst_file.read_text(encoding="utf-8", errors="replace") if dst_file and dst_file.exists() else ""
+        except OSError:
+            old_text = ""
+            
+        src_name = self._src_var.get()
+        dst_name = self._dst_var.get()
+            
+        self._diff.load(old_text, new_text, f"{dst_name} (target)", f"{src_name} (source)",
+                        self._show_diff_full)
+        self._diff_title.configure(text=f"Diff — {src_file.name}")
+
+    def _toggle_diff_full(self) -> None:
+        self._show_diff_full = not self._show_diff_full
+        self._diff_full_btn.configure(
+            text="Context Only" if self._show_diff_full else "Full File")
 
     # ─── Migration ────────────────────────────────────────────────────────────
 
