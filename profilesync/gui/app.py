@@ -118,7 +118,7 @@ class StatusBar(ctk.CTkFrame):
 class App(ctk.CTk):
     """Root application window."""
 
-    TITLE   = "Slicer Profile Sync"
+    TITLE   = "Slicer Profile Sync (Experimental GUI)"
     MIN_W   = 980
     MIN_H   = 660
 

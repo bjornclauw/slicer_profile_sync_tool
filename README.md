@@ -2,12 +2,12 @@
 
 A cross-platform Python tool to sync 3D printer slicer profiles (Orca Slicer, Bambu Studio, and more) across multiple computers using Git as the sync backend.
 
-**Platforms:** macOS, Windows, Linux
+**Platforms:** Windows, macOS, Linux
 
 ## Why ProfileSync?
 
 If you use multiple computers, you've probably experienced this:
-- You tune a perfect filament profile on your desktop
+ - You tune a perfect filament profile on your desktop
 - Go to print on your laptop... and it's not there
 - Try to remember which machine has the latest settings
 - Waste time manually copying .json files around
@@ -16,21 +16,16 @@ If you use multiple computers, you've probably experienced this:
 
 ## Screenshots
 
-| Main Screen | Push Screen |
-|:-----------:|:-----------:|
-| ![Main Screen](screenshots/main-screen.png) | ![Push Screen](screenshots/push-screen.png) |
-
-| Side-by-Side Diff | Pull Screen |
-|:------------------:|:-----------:|
-| ![Diff Screen](screenshots/diff-screen.png) | ![Pull Screen](screenshots/pull-screen.png) |
+| Interactive TUI | TUI Sync Status |
+|:---------------:|:---------------:|
+| ![TUI](screenshots/main-screen.png) | ![Status](screenshots/push-screen.png) |
 
 ## Key Features
 
-- 🖥️ **Interactive TUI** — full-screen terminal UI with file selection, powered by [Textual](https://textual.textualize.io/)
+- 🖥️ **Interactive TUI** — Full-screen terminal UI for power users, powered by [Textual](https://textual.textualize.io/).
 - 🔄 **Bidirectional Sync** — additions, modifications, and deletions propagate in both directions
-- 🔍 **Side-by-Side Diff Viewer** — compare local vs server with line numbers, context-only or full-file mode
-- 🎨 **Organized Display** — files grouped by slicer and type (filament / process / machine)
-- 📅 **Version History** — restore any previous profile version
+- 🕓 **Version History** — restore any previous profile version
+- 🎨 **Native GUI (WIP)** — An experimental graphical interface with dashboard stats and theme support.
 - 🎯 **Multi-Slicer** — Orca Slicer, Bambu Studio, Snapmaker Orca, Creality Print, Elegoo Slicer
 - 💻 **Cross-Platform** — macOS, Windows, Linux
 - 🌐 **Any Git Server** — GitHub, GitLab, Gitea, self-hosted, etc.
@@ -53,45 +48,47 @@ If you use multiple computers, you've probably experienced this:
 
 **macOS:**
 | Slicer | Path |
-|--------|------|
-| Orca Slicer | `~/Library/Application Support/OrcaSlicer/user/<id>/` |
-| Bambu Studio | `~/Library/Application Support/BambuStudio/user/<id>/` |
-| Snapmaker Orca | `~/Library/Application Support/SnapmakerOrcaSlicer/user/<id>/` |
-| Creality Print | `~/Library/Application Support/Creality/Creality Print/7.0/` |
-| Elegoo Slicer | `~/Library/Application Support/ElegooSlicer/user/<id>/` |
+|:---|:---|
+| **Orca Slicer** | `~/Library/Application Support/OrcaSlicer/user/<id>/` |
+| **Bambu Studio** | `~/Library/Application Support/BambuStudio/user/<id>/` |
+| **Snapmaker Orca** | `~/Library/Application Support/SnapmakerOrcaSlicer/user/<id>/` |
+| **Creality Print** | `~/Library/Application Support/Creality/Creality Print/7.0/` |
+| **Elegoo Slicer** | `~/Library/Application Support/ElegooSlicer/user/<id>/` |
 
 **Windows:**
 | Slicer | Path |
-|--------|------|
-| Orca Slicer | `%APPDATA%\OrcaSlicer\user\<id>\` |
-| Bambu Studio | `%APPDATA%\BambuStudio\user\<id>\` |
-| Snapmaker Orca | `%APPDATA%\SnapmakerOrcaSlicer\user\<id>\` |
-| Creality Print | `%APPDATA%\Creality\Creality Print\7.0\` |
-| Elegoo Slicer | `%APPDATA%\ElegooSlicer\user\<id>\` |
+|:---|:---|
+| **Orca Slicer** | `%APPDATA%\OrcaSlicer\user\<id>\` |
+| **Bambu Studio** | `%APPDATA%\BambuStudio\user\<id>\` |
+| **Snapmaker Orca** | `%APPDATA%\SnapmakerOrcaSlicer\user\<id>\` |
+| **Creality Print** | `%APPDATA%\Creality\Creality Print\7.0\` |
+| **Elegoo Slicer** | `%APPDATA%\ElegooSlicer\user\<id>\` |
 
-**Linux:**
-| Slicer | Path |
-|--------|------|
-| Orca Slicer | `~/.config/OrcaSlicer/user/<id>/` |
-| Bambu Studio | `~/.config/BambuStudio/user/<id>/` |
-| Snapmaker Orca | `~/.config/SnapmakerOrcaSlicer/user/<id>/` |
-| Creality Print | `~/.config/Creality/Creality Print/7.0/` |
-| Elegoo Slicer | `~/.config/ElegooSlicer/user/<id>/` |
-
-All slicers support automatic detection of numeric user ID subdirectories.
 </details>
 
 ## Requirements
 
 - **Python 3.8+**
-- **Git** installed and on PATH
+- **Git** installed and configured
   - macOS: Xcode Command Line Tools or `brew install git`
   - Windows: [Git for Windows](https://git-scm.com/download/win)
-  - Linux: `sudo apt install git` or equivalent
 - A Git repository for storing profiles (GitHub, GitLab, Gitea, etc.)
 - SSH keys configured (recommended) or HTTPS credentials
 
 ## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/duke8253/slicer_profile_sync_tool.git
+   cd slicer_profile_sync_tool
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+<details>
+<summary>Platform Specific Setup</summary>
 
 **macOS / Linux:**
 ```bash
@@ -251,6 +248,29 @@ When the same profile is modified on multiple computers, ProfileSync:
 5. Guides you through resolving and committing
 
 Supported editors: VS Code (`code --wait`), Vim, Nano, Sublime Text (`subl -w`), or any custom command.
+
+## Graphical User Interface (Experimental WIP)
+
+We are currently developing a native graphical interface for users who prefer windows over terminals. 
+
+**Note:** The GUI is in active development. Please report any bugs via GitHub Issues.
+
+### GUI Features
+- 📊 **Overview Dashboard** — At-a-glance stats for all your slicers (even those not installed).
+- 📦 **Direct Migration** — Copy profiles between different slicers on the same machine (without Git).
+- 🔍 **Visual Diff** — Side-by-side comparison with syntax-aware highlights.
+
+### How to Launch
+- **Windows:** Double-click `launch_profilesync.bat`.
+- **macOS:** Double-click `launch_profilesync.command`.
+- **Linux:** Run `python3 profilesync_gui.py`.
+
+### GUI Tabs
+1. **Overview:** Dashboard showing slicer stats and per-file sync status.
+2. **Sync:** Bulk Push/Pull operations.
+3. **Migrate:** Move profiles between local slicer installations.
+4. **History:** Browse and restore previous commit versions.
+5. **Settings:** Toggle slicers, set your editor, and change themes.
 
 ## Troubleshooting
 
