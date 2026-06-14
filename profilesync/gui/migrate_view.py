@@ -226,6 +226,10 @@ class MigrateView(ctk.CTkFrame):
         self._log.grid(row=4, column=0, sticky="ew",
                        padx=T.PAD_LG, pady=(0, T.PAD_LG))
 
+    def refresh(self) -> None:
+        """Called by App when this view becomes active."""
+        self._populate_menus()
+
     # ─── Slicer helpers ───────────────────────────────────────────────────────
 
     def _get_slicer_dir(self, display_name: str) -> Path | None:
@@ -237,28 +241,47 @@ class MigrateView(ctk.CTkFrame):
 
     def _populate_menus(self) -> None:
         from ..slicers import get_default_slicers
-        self._slicers = get_default_slicers()
-        names = [s.display for s in self._slicers]
-        if not names:
-            names = ["No slicers detected"]
+        from ..config import Config
+        try:
+            cfg = Config.load()
+            enabled = cfg.enabled_slicers
+        except FileNotFoundError:
+            enabled = []
+            
+        all_slicers = get_default_slicers()
+        self._slicers = [s for s in all_slicers if s.key in enabled]
+        self._names = [s.display for s in self._slicers]
+        
+        if not self._names:
+            self._src_menu.configure(values=["No slicers configured"])
+            self._dst_menu.configure(values=["No slicers configured"])
+            return
 
-        self._src_menu.configure(values=names)
-        self._dst_menu.configure(values=names)
-        if len(names) >= 1:
-            self._src_var.set(names[0])
-            self._on_src_changed(names[0])
-        if len(names) >= 2:
-            self._dst_var.set(names[1])
-            self._on_dst_changed(names[1])
+        self._src_menu.configure(values=self._names)
+        self._src_var.set(self._names[0])
+        self._on_src_changed(self._names[0])
+
+    def _update_dst_menu(self) -> None:
+        if not hasattr(self, "_names"):
+            return
+        src = self._src_var.get()
+        dst_values = [n for n in self._names if n != src]
+        
+        if not dst_values:
+            dst_values = ["No other slicer"]
+            self._dst_menu.configure(values=dst_values, state="disabled")
+            self._dst_var.set(dst_values[0])
+        else:
+            self._dst_menu.configure(values=dst_values, state="normal")
+            if self._dst_var.get() == src or self._dst_var.get() not in dst_values:
+                self._dst_var.set(dst_values[0])
+                
+        self._on_dst_changed(self._dst_var.get())
 
     def _on_src_changed(self, value: str) -> None:
         d = self._get_slicer_dir(value)
-        if d:
-            self._src_path_lbl.configure(text=str(d))
-            self._load_src_files(d)
-        else:
-            self._src_path_lbl.configure(text="(not detected)")
-            self._tree.load({})
+        self._src_path_lbl.configure(text=str(d) if d else "(not detected)")
+        self._update_dst_menu()
 
     def _on_dst_changed(self, value: str) -> None:
         d = self._get_slicer_dir(value)
@@ -266,6 +289,8 @@ class MigrateView(ctk.CTkFrame):
         src_d = self._get_slicer_dir(self._src_var.get())
         if src_d:
             self._load_src_files(src_d)
+        else:
+            self._tree.load({})
 
     def _load_src_files(self, src_dir: Path) -> None:
         """Scan source slicer directory and populate tree."""

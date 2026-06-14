@@ -33,7 +33,7 @@ INFO           = "#56d4ea"
 
 TEXT_PRIMARY   = "#e8ecf4"
 TEXT_SECONDARY = "#8a95b0"
-TEXT_DIM       = "#4d566e"
+TEXT_DIM       = "#737b91" #"#4d566e"
 
 # Tag / badge colors per slicer
 SLICER_COLORS = {

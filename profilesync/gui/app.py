@@ -69,12 +69,14 @@ class NavButton(ctk.CTkButton):
         if active:
             self.configure(
                 fg_color=self.ACTIVE_BG,
+                hover_color=T.ACCENT_HOVER,
                 text_color=self.ACTIVE_FG,
                 font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
             )
         else:
             self.configure(
                 fg_color=self.INACTIVE_BG,
+                hover_color=T.BG_HOVER,
                 text_color=self.INACTIVE_FG,
                 font=ctk.CTkFont(family="Segoe UI", size=14),
             )
