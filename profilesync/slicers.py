@@ -222,3 +222,10 @@ def get_default_slicers() -> list[Slicer]:
         # For now, use macOS-like paths as a fallback
         # TODO: Add proper Linux support
         return _macos_default_slicers()
+
+def get_slicer_by_key(key: str) -> Slicer | None:
+    """Get a Slicer instance by its key."""
+    for slicer in get_default_slicers():
+        if slicer.key == key:
+            return slicer
+    return None

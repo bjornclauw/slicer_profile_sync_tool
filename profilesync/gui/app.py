@@ -26,6 +26,7 @@ import customtkinter as ctk
 from . import theme as T
 from .history_view  import HistoryView
 from .migrate_view  import MigrateView
+from .overview_view import OverviewView
 from .settings_view import SettingsView
 from .setup_view    import SetupView
 from .sync_view     import SyncView
@@ -123,6 +124,7 @@ class App(ctk.CTk):
 
     NAV_ITEMS = [
         ("⚙",  "Setup",    "setup"),
+        ("📊", "Overview", "overview"),
         ("🔄", "Sync",     "sync"),
         ("📦", "Migrate",  "migrate"),
         ("🕓", "History",  "history"),
@@ -158,7 +160,7 @@ class App(ctk.CTk):
         try:
             from ..config import Config
             Config.load()
-            self._navigate("sync")
+            self._navigate("overview")
         except FileNotFoundError:
             self._navigate("setup")
 
@@ -222,6 +224,7 @@ class App(ctk.CTk):
     def _build_views(self) -> None:
         views = {
             "setup":    SetupView(self._content, app_ref=self),
+            "overview": OverviewView(self._content, app_ref=self),
             "sync":     SyncView(self._content, app_ref=self),
             "migrate":  MigrateView(self._content, app_ref=self),
             "history":  HistoryView(self._content, app_ref=self),
@@ -279,5 +282,5 @@ class App(ctk.CTk):
     def on_setup_complete(self) -> None:
         """Called by SetupView after successful initialization."""
         self._refresh_statusbar()
-        # Automatically switch to Sync tab
-        self.after(800, lambda: self._navigate("sync"))
+        # Automatically switch to Overview tab
+        self.after(800, lambda: self._navigate("overview"))

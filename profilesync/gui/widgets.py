@@ -350,9 +350,10 @@ class DiffViewer(ctk.CTkFrame):
         _clear(rt)
 
         if left_lines == right_lines:
-            _ins(lt, "  (files are identical)", "sep")
-            _ins(rt, "  (files are identical)", "sep")
-            return
+            _ins(lt, "  (files are identical)\n", "sep")
+            _ins(rt, "  (files are identical)\n", "sep")
+            if not show_full:
+                return
 
         # Build row list
         rows = []  # (tag, ln, ll, rn, rl)
@@ -477,13 +478,14 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
     """
 
     def __init__(self, parent: tk.Widget, on_select: Optional[Callable] = None,
-                 on_click: Optional[Callable] = None, **kwargs) -> None:
+                 on_click: Optional[Callable] = None, show_checkboxes: bool = True, **kwargs) -> None:
         super().__init__(parent, fg_color=T.BG_INPUT,
                          corner_radius=T.CORNER_RADIUS,
                          scrollbar_button_color=T.BG_HOVER,
                          **kwargs)
         self._on_select = on_select  # called when a checkbox changes
         self._on_click  = on_click   # called when a row is clicked (for diff)
+        self._show_checkboxes = show_checkboxes
         self._items: list[FileTreeItem] = []
         self._rows: list[ctk.CTkFrame] = []
         self._selected_row: Optional[int] = None
@@ -527,19 +529,24 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
                     "same":     T.TEXT_DIM,
                 }.get(item.tag, T.TEXT_PRIMARY)
 
-                cb = ctk.CTkCheckBox(
-                    row,
-                    text="",
-                    width=16,
-                    variable=item.var,
-                    command=self._on_change,
-                    checkbox_width=16,
-                    checkbox_height=16,
-                    corner_radius=3,
-                    fg_color=T.ACCENT,
-                    hover_color=T.ACCENT_HOVER,
-                )
-                cb.pack(side="left", padx=(T.PAD_SM, 4), pady=2)
+                if self._show_checkboxes:
+                    cb = ctk.CTkCheckBox(
+                        row,
+                        text="",
+                        width=16,
+                        variable=item.var,
+                        command=self._on_change,
+                        checkbox_width=16,
+                        checkbox_height=16,
+                        corner_radius=3,
+                        fg_color=T.ACCENT,
+                        hover_color=T.ACCENT_HOVER,
+                    )
+                    cb.pack(side="left", padx=(T.PAD_SM, 4), pady=2)
+                else:
+                    # Provide empty space instead
+                    spacer = ctk.CTkFrame(row, width=8, height=16, fg_color="transparent")
+                    spacer.pack(side="left", padx=0, pady=2)
 
                 lbl = ctk.CTkLabel(
                     row,
@@ -578,7 +585,7 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
         if self._selected_row is not None and self._selected_row < len(self._rows):
             self._rows[self._selected_row].configure(fg_color="transparent")
         if idx < len(self._rows):
-            self._rows[idx].configure(fg_color=T.BG_HOVER)
+            self._rows[idx].configure(fg_color=_blend_color(T.ACCENT, 0.25))
         self._selected_row = idx
         if self._on_click and idx < len(self._items):
             self._on_click(self._items[idx])
