@@ -250,6 +250,9 @@ When the same profile is modified on multiple computers, ProfileSync:
 Supported editors: VS Code (`code --wait`), Vim, Nano, Sublime Text (`subl -w`), or any custom command.
 
 ## Graphical User Interface (Experimental WIP)
+| Interactive GUI | GUI Sync |
+|:---------------:|:---------------:|
+| ![GUI](screenshots/main-screen.png) | ![SYNC](screenshots/push-screen.png) |
 
 We are currently developing a native graphical interface for users who prefer windows over terminals. 
 
