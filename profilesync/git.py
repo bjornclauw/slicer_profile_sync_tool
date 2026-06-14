@@ -37,6 +37,10 @@ REPO_PROFILES_DIR = Path("profiles")
 
 def run(cmd: list[str], cwd: Optional[Path] = None, check: bool = True) -> subprocess.CompletedProcess:
     """Execute a command."""
+    creationflags = 0
+    if os.name == "nt":
+        creationflags = subprocess.CREATE_NO_WINDOW
+
     return subprocess.run(
         cmd,
         cwd=str(cwd) if cwd else None,
@@ -44,6 +48,7 @@ def run(cmd: list[str], cwd: Optional[Path] = None, check: bool = True) -> subpr
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        creationflags=creationflags,
     )
 
 

@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
 import shutil
 import threading
 import tkinter as tk
@@ -395,9 +397,11 @@ class MigrateView(ctk.CTkFrame):
             show_toast(self, "Editor not configured in Settings", "warning")
             return
         try:
-            import subprocess
+            creationflags = 0
+            if os.name == "nt":
+                creationflags = subprocess.CREATE_NO_WINDOW
             cmd_str = f'{cfg.editor_cmd} "{self._current_file_path}"'
-            subprocess.Popen(cmd_str, shell=True)
+            subprocess.Popen(cmd_str, shell=True, creationflags=creationflags)
         except Exception as e:
             show_toast(self, f"Could not launch editor: {e}", "error")
 

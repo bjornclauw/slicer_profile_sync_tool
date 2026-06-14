@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import threading
 import tkinter as tk
@@ -480,9 +481,11 @@ class OverviewView(ctk.CTkFrame):
             return
             
         try:
-            import subprocess
+            creationflags = 0
+            if os.name == "nt":
+                creationflags = subprocess.CREATE_NO_WINDOW
             cmd_str = f'{cfg.editor_cmd} "{src}"'
-            subprocess.Popen(cmd_str, shell=True)
+            subprocess.Popen(cmd_str, shell=True, creationflags=creationflags)
         except Exception as e:
             show_toast(self, f"Could not launch editor: {e}", "error")
 
