@@ -4,3 +4,9 @@ colorama>=0.4.6
 
 # Rich terminal UI for interactive file selection
 textual>=1.0.0
+
+# Native Windows GUI (modern dark-themed tkinter)
+customtkinter>=5.2.0
+
+# Image support for GUI icons
+Pillow>=10.0.0
