@@ -47,6 +47,7 @@ from ..git import (
     git_push,
     git_has_commits,
     git_pull_rebase,
+    sha256_file,
 )
 
 class OverviewView(ctk.CTkFrame):
@@ -83,15 +84,9 @@ class OverviewView(ctk.CTkFrame):
                      font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
                      anchor="w").grid(row=0, column=0, sticky="w")
 
-        # Summary box
-        self._summary_frame = ctk.CTkFrame(top, fg_color=T.BG_INPUT,
-                                           corner_radius=T.CORNER_RADIUS)
-        self._summary_frame.grid(row=0, column=1, sticky="e", padx=(T.PAD_LG, 0))
-        self._summary_lbl = ctk.CTkLabel(self._summary_frame, text="Loading summary...",
-                                         text_color=T.TEXT_SECONDARY,
-                                         font=ctk.CTkFont(family="Segoe UI", size=12),
-                                         justify="left", anchor="w")
-        self._summary_lbl.pack(padx=T.PAD, pady=T.PAD_SM)
+        # Summary container for stat cards
+        self._summary_container = ctk.CTkFrame(top, fg_color="transparent")
+        self._summary_container.grid(row=0, column=1, sticky="e")
 
         # ── Main split: tree (left) + diff (right) ──
         split = ctk.CTkFrame(self, fg_color="transparent")
@@ -204,22 +199,77 @@ class OverviewView(ctk.CTkFrame):
             self._push_file_btn.configure(state="disabled")
             self._pull_file_btn.configure(state="disabled")
 
-    def _update_summary(self, summary_text: str) -> None:
-        self.after(0, lambda: self._summary_lbl.configure(text=summary_text))
+    def _update_summary(self, text: str, color: str = T.TEXT_SECONDARY) -> None:
+        """Show a simple message label in the summary area (fallback)."""
+        def _go():
+            for w in self._summary_container.winfo_children():
+                w.destroy()
+            lbl = ctk.CTkLabel(self._summary_container, text=text, text_color=color,
+                               font=ctk.CTkFont(family="Segoe UI", size=12))
+            lbl.pack(side="right", padx=T.PAD)
+        self.after(0, _go)
+
+    def _update_stats_display(self, stats: list[dict], sync_status: dict) -> None:
+        """Rebuild the summary cards in the top bar."""
+        # Clear existing
+        for w in self._summary_container.winfo_children():
+            w.destroy()
+            
+        # 1. Sync Status Card (far right)
+        status_color = T.SUCCESS if sync_status["tag"] == "ok" else T.WARNING
+        status_card = ctk.CTkFrame(self._summary_container, fg_color=T.BG_INPUT, 
+                                  corner_radius=T.CORNER_RADIUS)
+        status_card.pack(side="right", padx=(T.PAD_SM, 0))
+        
+        icon = "✓" if sync_status["tag"] == "ok" else "⚠"
+        ctk.CTkLabel(status_card, text=f"{icon}  {sync_status['text']}", 
+                     text_color=status_color,
+                     font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold")).pack(padx=T.PAD, pady=T.PAD_SM)
+        
+        # 2. Slicer Stats (chips)
+        for s in reversed(stats):
+            card = ctk.CTkFrame(self._summary_container, fg_color=T.BG_INPUT, 
+                               corner_radius=T.CORNER_RADIUS)
+            card.pack(side="right", padx=(T.PAD_SM, 0))
+            
+            accent_color = T.SLICER_COLORS.get(s["key"], T.ACCENT)
+            accent = ctk.CTkFrame(card, fg_color=accent_color, width=3, corner_radius=0)
+            accent.pack(side="left", fill="y")
+            
+            text_color = T.ERROR if s.get("has_diff") else T.TEXT_PRIMARY
+            detail_color = T.ERROR if s.get("has_diff") else T.TEXT_DIM
+
+            content = ctk.CTkFrame(card, fg_color="transparent")
+            content.pack(side="left", padx=T.PAD_SM, pady=4)
+            
+            ctk.CTkLabel(content, text=f"{s['name']} ({s['total']})", 
+                         text_color=text_color,
+                         font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+                         anchor="w").pack(fill="x")
+            
+            ctk.CTkLabel(content, text=s["details"], 
+                         text_color=detail_color,
+                         font=ctk.CTkFont(family="Segoe UI", size=12),
+                         anchor="w").pack(fill="x")
 
     def _load_data(self) -> None:
         self._set_busy(True, "Loading overview…")
 
+        # Reset selection state and clear diff viewer
+        self._current_file_item = None
+        self._diff.clear()
+        self._diff_title.configure(text="Diff")
+        self._update_button_states()
+
         def _run():
             try:
-                from ..sync import export_from_slicers_to_repo, rebuild_exported_from_git, collect_server_profiles
+                from ..sync import export_from_slicers_to_repo, rebuild_exported_from_git
                 cfg = self._cfg
                 
-                # Fetch server profiles state
-                git_run(["git", "fetch", "origin"], cwd=cfg.repo_dir, check=False)
+                # Update the local repository from the server first
+                git_pull_rebase(cfg.repo_dir)
                 
-                # We need all local files. We can get them by traversing enabled slicers.
-                # Find committed files
+                # Find committed files in repo
                 result = git_run(
                     ["git", "ls-tree", "-r", "--name-only", "HEAD", "--",
                      str(REPO_PROFILES_DIR)],
@@ -227,16 +277,31 @@ class OverviewView(ctk.CTkFrame):
                 )
                 committed = set(result.stdout.splitlines()) if result.returncode == 0 else set()
                 
-                # We also want to know which files differ from server
-                export_from_slicers_to_repo(cfg)
+                # Get local uncommitted changes
                 exported = rebuild_exported_from_git(cfg)
                 exported_dst = {dst for src, dst in exported if src is not None}
                 
                 groups: dict[str, list[FileTreeItem]] = {}
-                summary_lines = []
+                slicer_stats_data = []
                 
-                for slicer in cfg.enabled_slicers:
-                    root = cfg.repo_dir / REPO_PROFILES_DIR / slicer
+                # Detect all slicers: enabled + those existing on server
+                all_slicers = set(cfg.enabled_slicers)
+                repo_prof_root = cfg.repo_dir / REPO_PROFILES_DIR
+                if repo_prof_root.exists():
+                    all_slicers.update(d.name for d in repo_prof_root.iterdir() if d.is_dir())
+
+                # Track which slicers have uncommitted changes/diffs
+                slicers_with_diffs = set()
+                for _, dst in exported:
+                    try:
+                        rel_to_prof = dst.relative_to(repo_prof_root)
+                        if rel_to_prof.parts:
+                            slicers_with_diffs.add(rel_to_prof.parts[0])
+                    except ValueError:
+                        pass
+
+                for slicer in sorted(all_slicers):
+                    root = repo_prof_root / slicer
                     if not root.exists():
                         continue
                     
@@ -274,8 +339,15 @@ class OverviewView(ctk.CTkFrame):
                         except ValueError:
                             rel_repo = ""
                             
-                        if dst in exported_dst:
+                        # Detect if the file is out of sync (uncommitted local work or missing/different from slicer folder)
+                        matches_local = False
+                        if src and src.exists():
+                            matches_local = sha256_file(src) == sha256_file(dst)
+
+                        # Only flag as out-of-sync if the slicer is enabled in settings
+                        if slicer in cfg.enabled_slicers and (dst in exported_dst or not matches_local):
                             tag = "new" if rel_repo not in committed else "modified"
+                            slicers_with_diffs.add(slicer)
                         else:
                             tag = "same"
                             
@@ -286,47 +358,51 @@ class OverviewView(ctk.CTkFrame):
                     if files_by_type:
                         display_name = SLICER_DISPLAY_NAMES.get(slicer, slicer.capitalize())
                         total = sum(files_by_type.values())
-                        type_str = "  ".join(f"{t}: {c}" for t, c in sorted(files_by_type.items()))
-                        summary_lines.append(f"{display_name} ({total} files)")
-                        summary_lines.append(f"  {type_str}")
-                
+                        type_str = "\n".join(f"{t}: {c}" for t, c in sorted(files_by_type.items()))
+                        slicer_stats_data.append({
+                            "key": slicer,
+                            "name": display_name,
+                            "total": total,
+                            "details": type_str,
+                            "has_diff": slicer in slicers_with_diffs
+                        })
+
                 # Check for deleted files (in exported but dst doesn't exist locally)
                 for src, dst in exported:
                     if src is None: # deleted locally
                         try:
                             rel = dst.relative_to(cfg.repo_dir / REPO_PROFILES_DIR)
                             slicer_key = rel.parts[0]
+                            slicers_with_diffs.add(slicer_key)
+                            
                             disp = SLICER_DISPLAY_NAMES.get(slicer_key, slicer_key.capitalize())
                             try:
-                                rel_slicer = dst.relative_to(cfg.repo_dir / REPO_PROFILES_DIR / slicer_key)
+                                rel_slicer = dst.relative_to(repo_prof_root / slicer_key)
                                 ptype = rel_slicer.parts[0].capitalize() if rel_slicer.parts else "Other"
                             except ValueError:
                                 ptype = "Other"
                             group_name = f"{disp}  ›  {ptype}"
-                        except ValueError:
-                            group_name = "Other"
-                            slicer_key = "other"
                             
-                        tag = "deleted"
-                        lbl = f"🗑  {dst.name}"
-                        item = FileTreeItem(lbl, dst, tag=tag, extra=(src, dst))
-                        groups.setdefault(group_name, []).append(item)
+                            tag = "deleted"
+                            lbl = f"🗑  {dst.name}"
+                            item = FileTreeItem(lbl, dst, tag=tag, extra=(src, dst))
+                            groups.setdefault(group_name, []).append(item)
+                        except ValueError:
+                            pass
 
-                if not summary_lines:
-                    summary_text = "No profiles found."
+                if not slicer_stats_data:
+                    sync_status = {"text": "No profiles found", "tag": "warn"}
+                elif exported or len(slicers_with_diffs) > 0:
+                    sync_status = {"text": "Out of sync", "tag": "warn"}
                 else:
-                    summary_text = "\n".join(summary_lines)
-                    if exported:
-                        summary_text += f"\n\n⚠ {len(exported)} file(s) differ from server"
-                    else:
-                        summary_text += "\n\n✓ Local profiles match server"
+                    sync_status = {"text": "Local profiles match server", "tag": "ok"}
 
-                slicers = ["All Slicers"] + [SLICER_DISPLAY_NAMES.get(s, s.capitalize()) for s in cfg.enabled_slicers]
+                slicer_filter_values = ["All Slicers"] + sorted([s["name"] for s in slicer_stats_data])
                 
                 def _update_ui():
-                    self._summary_lbl.configure(text=summary_text)
-                    self._slicer_filter.configure(values=slicers)
-                    if self._slicer_filter_var.get() not in slicers:
+                    self._update_stats_display(slicer_stats_data, sync_status)
+                    self._slicer_filter.configure(values=slicer_filter_values)
+                    if self._slicer_filter_var.get() not in slicer_filter_values:
                         self._slicer_filter_var.set("All Slicers")
                     self._all_groups = groups
                     self._apply_filter()
@@ -456,9 +532,6 @@ class OverviewView(ctk.CTkFrame):
         def _run():
             try:
                 cfg = self._cfg
-                # Update the local repository from the server first
-                git_pull_rebase(cfg.repo_dir)
-
                 src, dst = self._current_file_item.extra
                 
                 # Build the profile dict format expected by import_selected_profiles
@@ -481,12 +554,9 @@ class OverviewView(ctk.CTkFrame):
                     "rel": rel
                 }
                 
-                copied = import_selected_profiles(cfg, [profile])
+                import_selected_profiles(cfg, [profile])
                 
-                if copied:
-                    self.after(0, lambda: show_toast(self, "File pulled and updated!", "success"))
-                else:
-                    self.after(0, lambda: show_toast(self, "File is already up to date.", "info"))
+                self.after(0, lambda: show_toast(self, "File pulled successfully!", "success"))
                 self.after(0, self._load_data)
             except Exception as e:
                 self.after(0, lambda: show_toast(self, f"Pull failed: {e}", "error"))

@@ -295,6 +295,12 @@ class MigrateView(ctk.CTkFrame):
     def _load_src_files(self, src_dir: Path) -> None:
         """Scan source slicer directory and populate tree."""
         groups: dict[str, list[FileTreeItem]] = {}
+
+        # Reset selection state and clear diff viewer
+        self._current_file_path = None
+        self._diff.clear()
+        self._diff_title.configure(text="Diff")
+
         if not src_dir.exists():
             self._tree.load({})
             self._tree_lbl.configure(text="Source directory not found")

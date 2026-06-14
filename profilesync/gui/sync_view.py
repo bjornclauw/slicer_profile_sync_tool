@@ -213,6 +213,11 @@ class SyncView(ctk.CTkFrame):
         if not cfg:
             return
 
+        # Reset selection state and clear diff viewer
+        self._current_file_path = None
+        self._diff.clear()
+        self._diff_title.configure(text="Diff")
+
         # Find committed files
         from ..git import run as git_run
         result = git_run(
@@ -267,6 +272,12 @@ class SyncView(ctk.CTkFrame):
     def _build_pull_tree(self, profiles: list[dict]) -> None:
         """Populate file tree with server profiles to pull."""
         self._server_profiles = profiles
+
+        # Reset selection state and clear diff viewer
+        self._current_file_path = None
+        self._diff.clear()
+        self._diff_title.configure(text="Diff")
+
         groups: dict[str, list[FileTreeItem]] = {}
         for p in profiles:
             disp = SLICER_DISPLAY_NAMES.get(p["slicer_key"],

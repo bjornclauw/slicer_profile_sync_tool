@@ -109,11 +109,6 @@ def rebuild_exported_from_git(cfg: Config) -> list[tuple[Path, Path]]:
         if not str(rel_path).startswith(str(REPO_PROFILES_DIR)):
             continue
 
-        # Deleted from repo
-        if "D" in status_code:
-            result.append((None, dst))  # type: ignore
-            continue
-
         # Map repo path back to slicer source
         # repo structure: profiles/<slicer_key>/<type>/<file>.json
         try:
@@ -122,8 +117,18 @@ def rebuild_exported_from_git(cfg: Config) -> list[tuple[Path, Path]]:
             if len(parts) < 2:
                 continue
             slicer_key = parts[0]
+
+            # Ignore changes for slicers that are disabled in settings
+            if slicer_key not in cfg.enabled_slicers:
+                continue
+
             sub_rel = Path(*parts[1:])  # type/file.json
         except (ValueError, IndexError):
+            continue
+
+        # Deleted from repo
+        if "D" in status_code:
+            result.append((None, dst))  # type: ignore
             continue
 
         # Find the slicer source file
