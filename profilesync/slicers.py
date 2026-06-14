@@ -48,13 +48,24 @@ def _detect_user_dirs(base: Path) -> list[Path]:
 
 def _detect_creality_version(app_support: Path) -> list[Path]:
     """
-    Detect Creality Print installation directory.
-    Checks for version 7.0, then 6.0 if not found.
-    Format: ~/Library/Application Support/Creality/Creality Print/7.0/
+    Detect Creality Print installation directory. 
+    Prioritizes v5.x (Orca-based) over v4.x (Cura-based).
     """
-    creality_base = app_support / "Creality" / "Creality Print"
+    # 1. Check for Creality Print 5.x (Orca-based)
+    cp5_base = app_support / "CrealityPrint"
+    if cp5_base.exists():
+        # Look for numeric user IDs first
+        cp5_dirs = _detect_user_dirs(cp5_base)
+        if cp5_dirs:
+            return cp5_dirs
+        # Fallback to default user folder
+        default_user = cp5_base / "user" / "default"
+        if default_user.exists():
+            return [default_user]
+        return [cp5_base]
 
-    # Try version 7 first, then version 6
+    # 2. Check for Older CP versions (v4.x / v7.0 / v6.0)
+    creality_base = app_support / "Creality" / "Creality Print"
     for version in ["7.0", "6.0"]:
         version_dir = creality_base / version
         if version_dir.exists():
@@ -117,8 +128,7 @@ def _macos_default_slicers() -> list[Slicer]:
         Slicer(
             key="crealityprint",
             display="Creality Print",
-            default_profile_dirs=creality_dirs if creality_dirs else [
-                app_support / "Creality" / "Creality Print" / "7.0"],
+            default_profile_dirs=creality_dirs if creality_dirs else [app_support / "Creality" / "Creality Print" / "7.0"],
         ),
         Slicer(
             key="elegooslicer",
@@ -150,23 +160,12 @@ def _windows_default_slicers() -> list[Slicer]:
     # Elegoo Slicer (based on OrcaSlicer)
     elegoo_base = appdata / "ElegooSlicer"
 
-    # Creality Print on Windows
-    # Typically in %APPDATA%\Creality\Creality Print\7.0
-    creality_base = appdata / "Creality" / "Creality Print"
-
     orca_dirs = _detect_user_dirs(orca_base)
     snapmaker_dirs = _detect_user_dirs(snapmaker_base)
     bambu_dirs = _detect_user_dirs(bambu_base)
     bambu_beta_dirs = _detect_user_dirs(bambu_beta_base)
     elegoo_dirs = _detect_user_dirs(elegoo_base)
-
-    # Detect Creality Print version on Windows
-    creality_dirs = []
-    for version in ["7.0", "6.0"]:
-        version_dir = creality_base / version
-        if version_dir.exists():
-            creality_dirs = [version_dir]
-            break
+    creality_dirs = _detect_creality_version(appdata)
 
     return [
         Slicer(
@@ -196,8 +195,7 @@ def _windows_default_slicers() -> list[Slicer]:
         Slicer(
             key="crealityprint",
             display="Creality Print",
-            default_profile_dirs=creality_dirs if creality_dirs else [
-                creality_base / "7.0"],
+            default_profile_dirs=creality_dirs if creality_dirs else [appdata / "Creality" / "Creality Print" / "7.0"],
         ),
         Slicer(
             key="elegooslicer",
@@ -207,6 +205,63 @@ def _windows_default_slicers() -> list[Slicer]:
         ),
     ]
 
+def _linux_default_slicers() -> list[Slicer]:
+    """
+    Linux slicer profile locations (auto-detect numeric user_id subdirs).
+    Usually follows XDG_CONFIG_HOME or ~/.config/.
+    """
+    config_home = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
+
+    # OrcaSlicer and variants
+    orca_base = config_home / "OrcaSlicer"
+    snapmaker_base = config_home / "Snapmaker_Orca"
+
+    # Bambu Studio and Beta
+    bambu_base = config_home / "BambuStudio"
+    bambu_beta_base = config_home / "BambuStudioBeta"
+
+    # Elegoo Slicer (based on OrcaSlicer)
+    elegoo_base = config_home / "ElegooSlicer"
+
+    orca_dirs = _detect_user_dirs(orca_base)
+    snapmaker_dirs = _detect_user_dirs(snapmaker_base)
+    bambu_dirs = _detect_user_dirs(bambu_base)
+    bambu_beta_dirs = _detect_user_dirs(bambu_beta_base)
+    elegoo_dirs = _detect_user_dirs(elegoo_base)
+    creality_dirs = _detect_creality_version(config_home)
+
+    return [
+        Slicer(
+            key="orcaslicer",
+            display="Orca Slicer",
+            default_profile_dirs=orca_dirs if orca_dirs else [orca_base / "user" / "default"],
+        ),
+        Slicer(
+            key="bambustudio",
+            display="Bambu Studio",
+            default_profile_dirs=bambu_dirs if bambu_dirs else [bambu_base / "user" / "default"],
+        ),
+        Slicer(
+            key="bambustudiobeta",
+            display="Bambu Studio Beta",
+            default_profile_dirs=bambu_beta_dirs if bambu_beta_dirs else [bambu_beta_base / "user" / "default"],
+        ),
+        Slicer(
+            key="snapmakerorca",
+            display="Snapmaker Orca",
+            default_profile_dirs=snapmaker_dirs if snapmaker_dirs else [snapmaker_base / "user" / "default"],
+        ),
+        Slicer(
+            key="crealityprint",
+            display="Creality Print",
+            default_profile_dirs=creality_dirs if creality_dirs else [config_home / "Creality" / "Creality Print" / "7.0"],
+        ),
+        Slicer(
+            key="elegooslicer",
+            display="Elegoo Slicer",
+            default_profile_dirs=elegoo_dirs if elegoo_dirs else [elegoo_base / "user" / "default"],
+        ),
+    ]
 
 def get_default_slicers() -> list[Slicer]:
     """
@@ -217,11 +272,8 @@ def get_default_slicers() -> list[Slicer]:
         return _macos_default_slicers()
     elif system == "Windows":
         return _windows_default_slicers()
-    else:  # Linux or other Unix-like
-        # Linux paths are similar to macOS but in ~/.config or ~/.local/share
-        # For now, use macOS-like paths as a fallback
-        # TODO: Add proper Linux support
-        return _macos_default_slicers()
+    else:  # Linux
+        return _linux_default_slicers()
 
 def get_slicer_by_key(key: str) -> Slicer | None:
     """Get a Slicer instance by its key."""

@@ -40,7 +40,7 @@ If you use multiple computers, you've probably experienced this:
 | **Orca Slicer** | ✅ | User directories |
 | **Bambu Studio** | ✅ | User directories |
 | **Snapmaker Orca** | ✅ | Snapmaker's OrcaSlicer fork |
-| **Creality Print** | ✅ | v7.0 and v6.0 |
+| **Creality Print** | ✅ | v5.x, v7.0, and v6.0 |
 | **Elegoo Slicer** | ✅ | Based on OrcaSlicer |
 
 <details>
@@ -51,7 +51,7 @@ If you use multiple computers, you've probably experienced this:
 |:---|:---|
 | **Orca Slicer** | `~/Library/Application Support/OrcaSlicer/user/<id>/` |
 | **Bambu Studio** | `~/Library/Application Support/BambuStudio/user/<id>/` |
-| **Snapmaker Orca** | `~/Library/Application Support/SnapmakerOrcaSlicer/user/<id>/` |
+| **Snapmaker Orca** | `~/Library/Application Support/Snapmaker_Orca/user/<id>/` |
 | **Creality Print** | `~/Library/Application Support/Creality/Creality Print/7.0/` |
 | **Elegoo Slicer** | `~/Library/Application Support/ElegooSlicer/user/<id>/` |
 
@@ -60,7 +60,7 @@ If you use multiple computers, you've probably experienced this:
 |:---|:---|
 | **Orca Slicer** | `%APPDATA%\OrcaSlicer\user\<id>\` |
 | **Bambu Studio** | `%APPDATA%\BambuStudio\user\<id>\` |
-| **Snapmaker Orca** | `%APPDATA%\SnapmakerOrcaSlicer\user\<id>\` |
+| **Snapmaker Orca** | `%APPDATA%\Snapmaker_Orca\user\<id>\` |
 | **Creality Print** | `%APPDATA%\Creality\Creality Print\7.0\` |
 | **Elegoo Slicer** | `%APPDATA%\ElegooSlicer\user\<id>\` |
 
