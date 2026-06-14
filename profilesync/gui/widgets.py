@@ -257,6 +257,30 @@ class DiffViewer(ctk.CTkFrame):
         self._right_txt = self._make_pane(pane)
         self._right_txt.grid(row=0, column=1, sticky="nsew", padx=(2, 0))
 
+        # Synchronize scrolling between left and right panes
+        def sync_left(first, last):
+            self._left_txt._sb.set(first, last)
+            if not getattr(self, "_syncing", False):
+                self._syncing = True
+                self._right_txt.yview_moveto(first)
+                self._syncing = False
+
+        def sync_right(first, last):
+            self._right_txt._sb.set(first, last)
+            if not getattr(self, "_syncing", False):
+                self._syncing = True
+                self._left_txt.yview_moveto(first)
+                self._syncing = False
+
+        def scroll_both(*args):
+            self._left_txt.yview(*args)
+            self._right_txt.yview(*args)
+
+        self._left_txt.configure(yscrollcommand=sync_left)
+        self._right_txt.configure(yscrollcommand=sync_right)
+        self._left_txt._sb.configure(command=scroll_both)
+        self._right_txt._sb.configure(command=scroll_both)
+
         # Tags
         for t in (self._left_txt, self._right_txt):
             t.tag_configure("add",    background=T.DIFF_ADD_BG,
@@ -291,11 +315,12 @@ class DiffViewer(ctk.CTkFrame):
         sb.pack(in_=f, side="right", fill="y")
         # Place f in the grid instead of t
         t._container = f  # type: ignore[attr-defined]
+        t._sb = sb
         return t
 
     def load(self, left_text: str, right_text: str,
              left_label: str = "Local", right_label: str = "Server",
-             show_full: bool = False) -> None:
+             show_full: bool = True) -> None:
         self._left_hdr.configure(text=left_label)
         self._right_hdr.configure(text=right_label)
 
@@ -504,11 +529,10 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
 
                 cb = ctk.CTkCheckBox(
                     row,
-                    text=item.label,
+                    text="",
+                    width=16,
                     variable=item.var,
                     command=self._on_change,
-                    text_color=tag_color,
-                    font=ctk.CTkFont(family="Segoe UI", size=12),
                     checkbox_width=16,
                     checkbox_height=16,
                     corner_radius=3,
@@ -516,6 +540,14 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
                     hover_color=T.ACCENT_HOVER,
                 )
                 cb.pack(side="left", padx=(T.PAD_SM, 4), pady=2)
+
+                lbl = ctk.CTkLabel(
+                    row,
+                    text=item.label,
+                    text_color=tag_color,
+                    font=ctk.CTkFont(family="Segoe UI", size=12),
+                )
+                lbl.pack(side="left", padx=(0, 4), pady=2)
 
                 # Tag badge
                 if item.tag in ("new", "deleted", "modified"):
@@ -535,8 +567,7 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
                 if self._on_click:
                     _ri = row_idx
                     row.bind("<Button-1>", lambda e, i=_ri: self._row_clicked(i))
-                    cb.bind("<Button-1>",
-                            lambda e, i=_ri: (self._row_clicked(i), None))
+                    lbl.bind("<Button-1>", lambda e, i=_ri: self._row_clicked(i))
 
     def _on_change(self) -> None:
         if self._on_select:

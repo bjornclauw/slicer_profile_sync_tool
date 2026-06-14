@@ -53,7 +53,7 @@ class SyncView(ctk.CTkFrame):
         self._server_profiles: list[dict] = []
         self._mode = "push"   # "push" | "pull"
         self._busy = False
-        self._show_diff_full = False
+        self._current_file_path: Path | None = None
         self._build_ui()
 
     # ─── UI construction ──────────────────────────────────────────────────────
@@ -173,10 +173,10 @@ class SyncView(ctk.CTkFrame):
                                                          size=12, weight="bold"),
                                         anchor="w")
         self._diff_title.pack(side="left")
-        self._diff_full_btn = secondary_button(diff_hdr, "Full File",
-                                               self._toggle_diff_full,
+        self._open_file_btn = secondary_button(diff_hdr, "Open File",
+                                               self._on_open_file,
                                                width=80)
-        self._diff_full_btn.pack(side="right")
+        self._open_file_btn.pack(side="right")
 
         self._diff = DiffViewer(diff_wrap)
         self._diff.grid(row=1, column=0, sticky="nsew",
@@ -307,6 +307,7 @@ class SyncView(ctk.CTkFrame):
             if item.extra is None:
                 return
             src, dst = item.extra
+            self._current_file_path = src
             if src is None:
                 self._diff.clear()
                 self._diff_title.configure(text="File was deleted")
@@ -324,14 +325,14 @@ class SyncView(ctk.CTkFrame):
                 old_text = result.stdout if result.returncode == 0 else ""
             except Exception:
                 old_text = ""
-            self._diff.load(old_text, new_text, "Server (current)", "Local (new)",
-                            self._show_diff_full)
+            self._diff.load(old_text, new_text, "Server (current)", "Local (new)")
             self._diff_title.configure(text=f"Diff — {dst.name}")
 
         elif self._mode == "pull":
             p = item.extra
             if not p:
                 return
+            self._current_file_path = p.get("local_path")
             try:
                 server_text = p["repo_path"].read_text(encoding="utf-8",
                                                         errors="replace")
@@ -344,14 +345,23 @@ class SyncView(ctk.CTkFrame):
                               if local_path and local_path.exists() else "")
             except OSError:
                 local_text = ""
-            self._diff.load(local_text, server_text, "Local (current)", "Server (incoming)",
-                            self._show_diff_full)
+            self._diff.load(local_text, server_text, "Local (current)", "Server (incoming)")
             self._diff_title.configure(text=f"Diff — {p['filename']}")
 
-    def _toggle_diff_full(self) -> None:
-        self._show_diff_full = not self._show_diff_full
-        self._diff_full_btn.configure(
-            text="Context Only" if self._show_diff_full else "Full File")
+    def _on_open_file(self) -> None:
+        if not self._current_file_path or not self._current_file_path.exists():
+            show_toast(self, "No file selected or file missing", "warning")
+            return
+        cfg = self._cfg
+        if not cfg or not cfg.editor_cmd:
+            show_toast(self, "Editor not configured in Settings", "warning")
+            return
+        try:
+            import subprocess
+            cmd_str = f'{cfg.editor_cmd} "{self._current_file_path}"'
+            subprocess.Popen(cmd_str, shell=True)
+        except Exception as e:
+            show_toast(self, f"Could not launch editor: {e}", "error")
 
     # ─── Actions ──────────────────────────────────────────────────────────────
 
