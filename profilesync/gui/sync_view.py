@@ -69,7 +69,7 @@ class SyncView(ctk.CTkFrame):
 
         ctk.CTkLabel(top, text="🔄  Sync",
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
                      anchor="w").grid(row=0, column=0, sticky="w")
 
         # Status capsule
@@ -78,54 +78,37 @@ class SyncView(ctk.CTkFrame):
         status_f.grid(row=0, column=1, sticky="e")
         self._status_dot = ctk.CTkLabel(status_f, text="●",
                                         text_color=T.TEXT_DIM,
-                                        font=ctk.CTkFont(size=10))
+                                        font=ctk.CTkFont(size=12))
         self._status_dot.pack(side="left", padx=(T.PAD_SM, 4), pady=T.PAD_SM)
         self._status_lbl = ctk.CTkLabel(status_f, text="Not configured",
                                         text_color=T.TEXT_SECONDARY,
                                         font=ctk.CTkFont(family="Segoe UI",
-                                                         size=10))
+                                                         size=12))
         self._status_lbl.pack(side="left", padx=(0, T.PAD_SM), pady=T.PAD_SM)
 
         # ── Action buttons ──
         btn_f = ctk.CTkFrame(self, fg_color="transparent")
         btn_f.grid(row=1, column=0, sticky="ew", padx=T.PAD_LG, pady=(0, T.PAD_SM))
+        btn_f.columnconfigure((0, 1, 2, 3), weight=1)
+        btn_f.columnconfigure(4, weight=10) # absorb extra space
 
         self._push_btn = action_button(btn_f, "Push", self._on_push,
                                        color=T.ACCENT, width=110, icon="↑")
-        self._push_btn.pack(side="left", padx=(0, T.PAD_SM))
+        self._push_btn.grid(row=0, column=0, sticky="ew", padx=(0, T.PAD_SM))
 
         self._pull_btn = action_button(btn_f, "Pull", self._on_pull,
                                        color=T.SUCCESS, width=110, icon="↓")
-        self._pull_btn.pack(side="left", padx=(0, T.PAD_SM))
+        self._pull_btn.grid(row=0, column=1, sticky="ew", padx=(0, T.PAD_SM))
 
         self._full_btn = action_button(btn_f, "Full Sync", self._on_full_sync,
                                        color="#7b61ff", width=130, icon="⟳")
-        self._full_btn.pack(side="left", padx=(0, T.PAD_SM))
+        self._full_btn.grid(row=0, column=2, sticky="ew", padx=(0, T.PAD_SM))
 
         self._refresh_btn = secondary_button(btn_f, "⟳  Refresh",
                                              self._on_refresh, width=110)
-        self._refresh_btn.pack(side="left", padx=(T.PAD_SM, 0))
+        self._refresh_btn.grid(row=0, column=3, sticky="ew", padx=(0, T.PAD_SM))
 
-        # Select-all / none / invert for current mode
-        self._sel_all_btn = secondary_button(btn_f, "All",
-                                             lambda: self._tree.select_all(),
-                                             width=60)
-        self._sel_none_btn = secondary_button(btn_f, "None",
-                                              lambda: self._tree.select_none(),
-                                              width=60)
-        self._sel_inv_btn = secondary_button(btn_f, "Invert",
-                                             lambda: self._tree.invert(),
-                                             width=70)
-        self._sel_all_btn.pack(side="right", padx=(0, T.PAD_SM))
-        self._sel_none_btn.pack(side="right", padx=(0, T.PAD_SM))
-        self._sel_inv_btn.pack(side="right", padx=(0, T.PAD_SM))
 
-        # Count label
-        self._count_lbl = ctk.CTkLabel(btn_f, text="",
-                                        text_color=T.TEXT_SECONDARY,
-                                        font=ctk.CTkFont(family="Segoe UI",
-                                                         size=10))
-        self._count_lbl.pack(side="right", padx=(0, T.PAD_SM))
 
         # ── Main split: tree (left) + diff (right) ──
         split = ctk.CTkFrame(self, fg_color="transparent")
@@ -142,13 +125,30 @@ class SyncView(ctk.CTkFrame):
         tree_wrap.grid(row=0, column=0, sticky="nsew", padx=(0, T.PAD_SM))
         tree_wrap.rowconfigure(1, weight=1)
         tree_wrap.columnconfigure(0, weight=1)
-        self._tree_title = ctk.CTkLabel(tree_wrap, text="Files",
+        tree_hdr = ctk.CTkFrame(tree_wrap, fg_color="transparent")
+        tree_hdr.grid(row=0, column=0, sticky="ew", padx=T.PAD, pady=(T.PAD_SM, 0))
+        self._tree_title = ctk.CTkLabel(tree_hdr, text="Files",
                                         text_color=T.TEXT_SECONDARY,
                                         font=ctk.CTkFont(family="Segoe UI",
-                                                         size=10, weight="bold"),
+                                                         size=12, weight="bold"),
                                         anchor="w")
-        self._tree_title.grid(row=0, column=0, sticky="w",
-                              padx=T.PAD, pady=(T.PAD_SM, 0))
+        self._tree_title.pack(side="left")
+
+        # Select buttons and count
+        self._sel_all_btn = secondary_button(tree_hdr, "All",
+                                             lambda: self._tree.select_all(), width=40)
+        self._sel_none_btn = secondary_button(tree_hdr, "None",
+                                              lambda: self._tree.select_none(), width=40)
+        self._sel_inv_btn = secondary_button(tree_hdr, "Invert",
+                                             lambda: self._tree.invert(), width=48)
+        self._sel_inv_btn.pack(side="right", padx=(T.PAD_SM, 0))
+        self._sel_none_btn.pack(side="right", padx=(T.PAD_SM, 0))
+        self._sel_all_btn.pack(side="right", padx=(T.PAD_SM, 0))
+
+        self._count_lbl = ctk.CTkLabel(tree_hdr, text="",
+                                       text_color=T.TEXT_SECONDARY,
+                                       font=ctk.CTkFont(family="Segoe UI", size=11))
+        self._count_lbl.pack(side="right", padx=(0, T.PAD))
         self._tree = CheckboxFileTree(
             tree_wrap,
             on_select=self._on_selection_changed,
@@ -170,7 +170,7 @@ class SyncView(ctk.CTkFrame):
         self._diff_title = ctk.CTkLabel(diff_hdr, text="Diff",
                                         text_color=T.TEXT_SECONDARY,
                                         font=ctk.CTkFont(family="Segoe UI",
-                                                         size=10, weight="bold"),
+                                                         size=12, weight="bold"),
                                         anchor="w")
         self._diff_title.pack(side="left")
         self._diff_full_btn = secondary_button(diff_hdr, "Full File",

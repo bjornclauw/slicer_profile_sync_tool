@@ -55,10 +55,10 @@ class NavButton(ctk.CTkButton):
             fg_color=self.INACTIVE_BG,
             hover_color=T.BG_HOVER,
             text_color=self.INACTIVE_FG,
-            font=ctk.CTkFont(family="Segoe UI", size=12),
+            font=ctk.CTkFont(family="Segoe UI", size=14),
             anchor="w",
             corner_radius=8,
-            height=40,
+            height=44,
             border_width=0,
             **kwargs,
         )
@@ -70,13 +70,13 @@ class NavButton(ctk.CTkButton):
             self.configure(
                 fg_color=self.ACTIVE_BG,
                 text_color=self.ACTIVE_FG,
-                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
             )
         else:
             self.configure(
                 fg_color=self.INACTIVE_BG,
                 text_color=self.INACTIVE_FG,
-                font=ctk.CTkFont(family="Segoe UI", size=12),
+                font=ctk.CTkFont(family="Segoe UI", size=14),
             )
 
 
@@ -86,19 +86,19 @@ class StatusBar(ctk.CTkFrame):
     """Thin bottom status bar showing Git remote and config state."""
 
     def __init__(self, parent: tk.Widget) -> None:
-        super().__init__(parent, fg_color=T.BG_DARK, height=28,
+        super().__init__(parent, fg_color=T.BG_DARK, height=32,
                          corner_radius=0)
         self.pack_propagate(False)
 
         self._left = ctk.CTkLabel(self, text="",
                                   text_color=T.TEXT_DIM,
-                                  font=ctk.CTkFont(family="Segoe UI", size=9),
+                                  font=ctk.CTkFont(family="Segoe UI", size=11),
                                   anchor="w")
         self._left.pack(side="left", padx=T.PAD_SM)
 
         self._right = ctk.CTkLabel(self, text="ProfileSync",
                                    text_color=T.TEXT_DIM,
-                                   font=ctk.CTkFont(family="Segoe UI", size=9),
+                                   font=ctk.CTkFont(family="Segoe UI", size=11),
                                    anchor="e")
         self._right.pack(side="right", padx=T.PAD_SM)
 
@@ -188,13 +188,13 @@ class App(ctk.CTk):
         logo_frame.grid(row=0, column=0, sticky="ew", padx=T.PAD, pady=(T.PAD_LG, T.PAD))
 
         ctk.CTkLabel(logo_frame, text="🖨",
-                     font=ctk.CTkFont(size=28),
+                     font=ctk.CTkFont(size=30),
                      text_color=T.ACCENT).pack(anchor="w")
         ctk.CTkLabel(logo_frame, text="ProfileSync",
-                     font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
                      text_color=T.TEXT_PRIMARY).pack(anchor="w")
         ctk.CTkLabel(logo_frame, text="Slicer profile sync tool",
-                     font=ctk.CTkFont(family="Segoe UI", size=9),
+                     font=ctk.CTkFont(family="Segoe UI", size=11),
                      text_color=T.TEXT_DIM).pack(anchor="w")
 
         # Divider
@@ -212,7 +212,7 @@ class App(ctk.CTk):
 
         # Bottom: GitHub link hint
         ctk.CTkLabel(sb, text="github.com/duke8253\n/slicer_profile_sync_tool",
-                     font=ctk.CTkFont(family="Segoe UI", size=8),
+                     font=ctk.CTkFont(family="Segoe UI", size=10),
                      text_color=T.TEXT_DIM,
                      justify="center").grid(row=20, column=0,
                                             padx=T.PAD, pady=T.PAD)

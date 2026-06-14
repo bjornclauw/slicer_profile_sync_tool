@@ -52,12 +52,12 @@ class HistoryView(ctk.CTkFrame):
         top.grid(row=0, column=0, sticky="ew", padx=T.PAD_LG, pady=(T.PAD_LG, 4))
         ctk.CTkLabel(top, text="🕓  History",
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
                      anchor="w").pack(side="left")
         ctk.CTkLabel(top,
                      text="Browse saved versions and restore any previous profile state",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=11),
+                     font=ctk.CTkFont(family="Segoe UI", size=13),
                      anchor="w").pack(side="left", padx=(T.PAD, 0), pady=(4, 0))
 
         # ── Split: commit list (left) + detail (right) ──
@@ -79,7 +79,7 @@ class HistoryView(ctk.CTkFrame):
         lhdr.grid(row=0, column=0, sticky="ew", padx=T.PAD, pady=(T.PAD_SM, 0))
         ctk.CTkLabel(lhdr, text="Saved Versions",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
                      anchor="w").pack(side="left")
         secondary_button(lhdr, "⟳", self._on_refresh_history, width=36).pack(
             side="right")
@@ -121,21 +121,21 @@ class HistoryView(ctk.CTkFrame):
         self._commit_hash_lbl = ctk.CTkLabel(self._info_card, text="No version selected",
                                              text_color=T.TEXT_SECONDARY,
                                              font=ctk.CTkFont(family="Consolas",
-                                                              size=10, weight="bold"),
+                                                              size=12, weight="bold"),
                                              anchor="w")
         self._commit_hash_lbl.grid(row=0, column=0, sticky="w",
                                    padx=T.PAD, pady=(T.PAD_SM, 0))
         self._commit_date_lbl = ctk.CTkLabel(self._info_card, text="",
                                              text_color=T.TEXT_DIM,
                                              font=ctk.CTkFont(family="Segoe UI",
-                                                              size=10),
+                                                              size=12),
                                              anchor="e")
         self._commit_date_lbl.grid(row=0, column=1, sticky="e",
                                    padx=T.PAD, pady=(T.PAD_SM, 0))
         self._commit_msg_lbl = ctk.CTkLabel(self._info_card, text="",
                                             text_color=T.TEXT_PRIMARY,
                                             font=ctk.CTkFont(family="Segoe UI",
-                                                             size=11),
+                                                             size=13),
                                             anchor="w")
         self._commit_msg_lbl.grid(row=1, column=0, columnspan=2, sticky="w",
                                   padx=T.PAD, pady=(2, T.PAD_SM))
@@ -143,7 +143,7 @@ class HistoryView(ctk.CTkFrame):
         # Files changed
         ctk.CTkLabel(right, text="FILES CHANGED IN THIS VERSION",
                      text_color=T.TEXT_DIM,
-                     font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
                      anchor="w").grid(row=1, column=0, sticky="w",
                                       padx=T.PAD, pady=(0, 2))
 
@@ -178,7 +178,7 @@ class HistoryView(ctk.CTkFrame):
         ctk.CTkLabel(btn_row,
                      text="  ⚠ Overwrites current slicer profiles",
                      text_color=T.WARNING,
-                     font=ctk.CTkFont(family="Segoe UI", size=9)).pack(
+                     font=ctk.CTkFont(family="Segoe UI", size=11)).pack(
             side="left", padx=(T.PAD_SM, 0))
 
         # Log

@@ -55,12 +55,12 @@ class SetupView(ctk.CTkFrame):
         title_f.grid(row=0, column=0, sticky="ew", padx=T.PAD_LG, pady=(T.PAD_LG, 4))
         ctk.CTkLabel(title_f, text="⚙  Setup",
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
                      anchor="w").pack(side="left")
         ctk.CTkLabel(title_f,
                      text="Connect to your Git repository and select slicers to sync",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=11),
+                     font=ctk.CTkFont(family="Segoe UI", size=13),
                      anchor="w").pack(side="left", padx=(T.PAD, 0), pady=(4, 0))
 
         # ── Scrollable form ──
@@ -89,7 +89,7 @@ class SetupView(ctk.CTkFrame):
         self._status_lbl = ctk.CTkLabel(btn_f, text="",
                                         text_color=T.TEXT_SECONDARY,
                                         font=ctk.CTkFont(family="Segoe UI",
-                                                         size=10))
+                                                         size=12))
         self._status_lbl.pack(side="right")
 
     def _populate_form(self) -> None:
@@ -106,7 +106,7 @@ class SetupView(ctk.CTkFrame):
         def label(text: str) -> None:
             nonlocal row
             ctk.CTkLabel(f, text=text, text_color=T.TEXT_SECONDARY,
-                         font=ctk.CTkFont(family="Segoe UI", size=10,
+                         font=ctk.CTkFont(family="Segoe UI", size=12,
                                           weight="bold"),
                          anchor="w").grid(row=row, column=0, sticky="w",
                                           pady=(T.PAD_SM, 2))
@@ -123,8 +123,8 @@ class SetupView(ctk.CTkFrame):
                                     fg_color=T.BG_INPUT,
                                     border_color=T.BORDER,
                                     text_color=T.TEXT_PRIMARY,
-                                    font=ctk.CTkFont(family="Consolas", size=10),
-                                    height=34,
+                                    font=ctk.CTkFont(family="Consolas", size=12),
+                                    height=38,
                                     placeholder_text="git@github.com:you/slicer-profiles.git")
         remote_entry.grid(row=0, column=0, sticky="ew", padx=(0, T.PAD_SM))
         self._test_btn = secondary_button(remote_f, "Test", self._test_remote,
@@ -133,7 +133,7 @@ class SetupView(ctk.CTkFrame):
         self._remote_status = ctk.CTkLabel(remote_f, text="",
                                            text_color=T.TEXT_DIM,
                                            font=ctk.CTkFont(family="Segoe UI",
-                                                            size=10))
+                                                            size=12))
         self._remote_status.grid(row=1, column=0, columnspan=2, sticky="w",
                                  pady=(2, 0))
 
@@ -150,8 +150,8 @@ class SetupView(ctk.CTkFrame):
                      fg_color=T.BG_INPUT,
                      border_color=T.BORDER,
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Consolas", size=10),
-                     height=34,
+                     font=ctk.CTkFont(family="Consolas", size=12),
+                     height=38,
                      placeholder_text="(auto-detected from remote URL)").grid(
             row=0, column=0, sticky="ew", padx=(0, T.PAD_SM))
         secondary_button(dir_f, "Browse…", self._browse_repo_dir,
@@ -173,7 +173,7 @@ class SetupView(ctk.CTkFrame):
         ctk.CTkLabel(f,
                      text="Click 'Detect' to auto-fill, or enter custom paths:",
                      text_color=T.TEXT_DIM,
-                     font=ctk.CTkFont(family="Segoe UI", size=10),
+                     font=ctk.CTkFont(family="Segoe UI", size=12),
                      anchor="w").grid(row=row, column=0, sticky="w", pady=(0, T.PAD_SM))
         row += 1
         self._paths_frame = ctk.CTkFrame(f, fg_color="transparent")
@@ -195,14 +195,14 @@ class SetupView(ctk.CTkFrame):
                      fg_color=T.BG_INPUT,
                      border_color=T.BORDER,
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Consolas", size=10),
-                     height=34,
+                     font=ctk.CTkFont(family="Consolas", size=12),
+                     height=38,
                      placeholder_text="code --wait").grid(
             row=0, column=0, sticky="ew")
         ctk.CTkLabel(editor_f,
                      text="  e.g.  code --wait   vim   subl -w   notepad",
                      text_color=T.TEXT_DIM,
-                     font=ctk.CTkFont(family="Segoe UI", size=9)).grid(
+                     font=ctk.CTkFont(family="Segoe UI", size=11)).grid(
             row=1, column=0, sticky="w", pady=(2, 0))
 
     def _build_slicer_checkboxes(self) -> None:
@@ -230,7 +230,7 @@ class SetupView(ctk.CTkFrame):
                 variable=var,
                 command=self._on_slicer_toggle,
                 text_color=color,
-                font=ctk.CTkFont(family="Segoe UI", size=11),
+                font=ctk.CTkFont(family="Segoe UI", size=13),
                 checkbox_width=16, checkbox_height=16, corner_radius=3,
                 fg_color=T.ACCENT, hover_color=T.ACCENT_HOVER,
             )
@@ -262,7 +262,7 @@ class SetupView(ctk.CTkFrame):
 
             color = T.SLICER_COLORS.get(key, T.TEXT_SECONDARY)
             ctk.CTkLabel(row_f, text=s.display, text_color=color,
-                         font=ctk.CTkFont(family="Segoe UI", size=10,
+                         font=ctk.CTkFont(family="Segoe UI", size=12,
                                           weight="bold"),
                          width=140, anchor="w").grid(row=0, column=0,
                                                      padx=(0, T.PAD_SM))
@@ -278,8 +278,8 @@ class SetupView(ctk.CTkFrame):
             entry = ctk.CTkEntry(row_f, textvariable=var,
                                  fg_color=T.BG_INPUT, border_color=T.BORDER,
                                  text_color=T.TEXT_PRIMARY,
-                                 font=ctk.CTkFont(family="Consolas", size=9),
-                                 height=30)
+                                 font=ctk.CTkFont(family="Consolas", size=11),
+                                 height=34)
             entry.grid(row=0, column=1, sticky="ew", padx=(0, T.PAD_SM))
 
             _key = key
@@ -290,7 +290,7 @@ class SetupView(ctk.CTkFrame):
             ctk.CTkLabel(self._paths_frame,
                          text="Select at least one slicer above",
                          text_color=T.TEXT_DIM,
-                         font=ctk.CTkFont(family="Segoe UI", size=10)).grid(
+                         font=ctk.CTkFont(family="Segoe UI", size=12)).grid(
                 row=0, column=0, sticky="w", pady=T.PAD_SM)
 
     def _on_slicer_toggle(self) -> None:

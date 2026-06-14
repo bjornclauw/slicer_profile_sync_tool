@@ -67,11 +67,11 @@ class Toast:
         frame.pack(fill="both", expand=True, padx=1, pady=1)
 
         dot = ctk.CTkLabel(frame, text="●", text_color=color,
-                           font=ctk.CTkFont(size=10))
+                           font=ctk.CTkFont(size=12))
         dot.pack(side="left", padx=(T.PAD, 4), pady=T.PAD_SM)
 
         lbl = ctk.CTkLabel(frame, text=message, text_color=T.TEXT_PRIMARY,
-                           font=ctk.CTkFont(family="Segoe UI", size=11),
+                           font=ctk.CTkFont(family="Segoe UI", size=13),
                            wraplength=320, justify="left")
         lbl.pack(side="left", padx=(0, T.PAD), pady=T.PAD_SM)
 
@@ -118,12 +118,12 @@ class SpinnerOverlay(ctk.CTkFrame):
 
         self._spin_lbl = ctk.CTkLabel(inner, text=self._CHARS[0],
                                       text_color=T.ACCENT,
-                                      font=ctk.CTkFont(size=24))
+                                      font=ctk.CTkFont(size=26))
         self._spin_lbl.pack(side="left", padx=(T.PAD_LG, T.PAD_SM),
                             pady=T.PAD_LG)
 
         ctk.CTkLabel(inner, text=label, text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=12)).pack(
+                     font=ctk.CTkFont(family="Segoe UI", size=14)).pack(
             side="left", padx=(0, T.PAD_LG), pady=T.PAD_LG)
 
     def start(self) -> None:
@@ -155,7 +155,7 @@ class SectionHeader(ctk.CTkLabel):
 
     def __init__(self, parent: tk.Widget, text: str, **kwargs) -> None:
         super().__init__(parent, text=text,
-                         font=ctk.CTkFont(family="Segoe UI", size=11,
+                         font=ctk.CTkFont(family="Segoe UI", size=13,
                                           weight="bold"),
                          text_color=T.TEXT_SECONDARY,
                          anchor="w",
@@ -181,6 +181,7 @@ class LogPanel(ctk.CTkFrame):
             pady=T.PAD_SM,
             wrap="word",
             state="disabled",
+            width=1,
             height=height // 16,
             selectbackground=T.BG_HOVER,
             insertbackground=T.TEXT_PRIMARY,
@@ -231,14 +232,14 @@ class DiffViewer(ctk.CTkFrame):
         self._left_hdr = ctk.CTkLabel(hdr, text="Local",
                                       text_color=T.TEXT_SECONDARY,
                                       font=ctk.CTkFont(family="Segoe UI",
-                                                       size=10, weight="bold"),
+                                                       size=12, weight="bold"),
                                       anchor="w")
         self._left_hdr.pack(side="left", fill="x", expand=True,
                             padx=T.PAD_SM, pady=T.PAD_SM)
         self._right_hdr = ctk.CTkLabel(hdr, text="Server",
                                        text_color=T.TEXT_SECONDARY,
                                        font=ctk.CTkFont(family="Segoe UI",
-                                                        size=10, weight="bold"),
+                                                        size=12, weight="bold"),
                                        anchor="w")
         self._right_hdr.pack(side="right", fill="x", expand=True,
                              padx=T.PAD_SM, pady=T.PAD_SM)
@@ -277,6 +278,8 @@ class DiffViewer(ctk.CTkFrame):
             padx=6, pady=4,
             wrap="none",
             state="disabled",
+            width=1,
+            height=1,
             selectbackground=T.BG_HOVER,
         )
         sb = ctk.CTkScrollbar(parent, command=t.yview)
@@ -403,10 +406,10 @@ def action_button(parent: tk.Widget, text: str, command: Callable,
         fg_color=color,
         hover_color=T.ACCENT_HOVER if color == T.ACCENT else color,
         text_color=T.BG_DARK,
-        font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+        font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
         corner_radius=T.CORNER_RADIUS,
         width=width,
-        height=36,
+        height=40,
     )
 
 
@@ -421,10 +424,10 @@ def secondary_button(parent: tk.Widget, text: str, command: Callable,
         text_color=T.TEXT_PRIMARY,
         border_color=T.BORDER,
         border_width=1,
-        font=ctk.CTkFont(family="Segoe UI", size=11),
+        font=ctk.CTkFont(family="Segoe UI", size=13),
         corner_radius=T.CORNER_RADIUS,
         width=width,
-        height=34,
+        height=38,
     )
 
 
@@ -476,7 +479,7 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
             # Group header
             hdr = ctk.CTkLabel(self, text=f"  {group_name}",
                                text_color=T.TEXT_SECONDARY,
-                               font=ctk.CTkFont(family="Segoe UI", size=10,
+                               font=ctk.CTkFont(family="Segoe UI", size=12,
                                                 weight="bold"),
                                fg_color="transparent",
                                anchor="w")
@@ -505,7 +508,7 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
                     variable=item.var,
                     command=self._on_change,
                     text_color=tag_color,
-                    font=ctk.CTkFont(family="Segoe UI", size=10),
+                    font=ctk.CTkFont(family="Segoe UI", size=12),
                     checkbox_width=16,
                     checkbox_height=16,
                     corner_radius=3,
@@ -524,7 +527,7 @@ class CheckboxFileTree(ctk.CTkScrollableFrame):
                                         text_color=tag_color,
                                         corner_radius=3,
                                         font=ctk.CTkFont(family="Segoe UI",
-                                                         size=8, weight="bold"),
+                                                         size=10, weight="bold"),
                                         width=32, height=16)
                     badge.pack(side="left", padx=(0, 4))
 

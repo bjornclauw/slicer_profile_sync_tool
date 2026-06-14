@@ -59,12 +59,12 @@ class MigrateView(ctk.CTkFrame):
         top.grid(row=0, column=0, sticky="ew", padx=T.PAD_LG, pady=(T.PAD_LG, 4))
         ctk.CTkLabel(top, text="📦  Migrate",
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
                      anchor="w").pack(side="left")
         ctk.CTkLabel(top,
                      text="Copy profiles from one slicer to another (no Git required)",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=11),
+                     font=ctk.CTkFont(family="Segoe UI", size=13),
                      anchor="w").pack(side="left", padx=(T.PAD, 0), pady=(4, 0))
 
         # ── Source / Destination controls ──
@@ -72,12 +72,12 @@ class MigrateView(ctk.CTkFrame):
                             corner_radius=T.CORNER_RADIUS)
         ctrl.grid(row=1, column=0, sticky="ew", padx=T.PAD_LG, pady=(0, T.PAD_SM))
         ctrl.columnconfigure(1, weight=1)
-        ctrl.columnconfigure(3, weight=1)
+        ctrl.columnconfigure(4, weight=1)
 
         # Source
         ctk.CTkLabel(ctrl, text="FROM",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
                      width=50).grid(row=0, column=0, padx=(T.PAD, T.PAD_SM),
                                     pady=T.PAD, sticky="w")
         self._src_var = tk.StringVar()
@@ -90,8 +90,8 @@ class MigrateView(ctk.CTkFrame):
             button_color=T.ACCENT,
             button_hover_color=T.ACCENT_HOVER,
             text_color=T.TEXT_PRIMARY,
-            font=ctk.CTkFont(family="Segoe UI", size=11),
-            height=34,
+            font=ctk.CTkFont(family="Segoe UI", size=13),
+            height=38,
         )
         self._src_menu.grid(row=0, column=1, sticky="ew", padx=(0, T.PAD_SM),
                             pady=T.PAD)
@@ -99,13 +99,13 @@ class MigrateView(ctk.CTkFrame):
         # Arrow
         ctk.CTkLabel(ctrl, text="→",
                      text_color=T.ACCENT,
-                     font=ctk.CTkFont(size=18)).grid(row=0, column=2,
+                     font=ctk.CTkFont(size=20)).grid(row=0, column=2,
                                                      padx=T.PAD_SM)
 
         # Destination
         ctk.CTkLabel(ctrl, text="TO",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
                      width=30).grid(row=0, column=3, padx=(T.PAD_SM, T.PAD_SM),
                                     pady=T.PAD, sticky="w")
         self._dst_var = tk.StringVar()
@@ -118,8 +118,8 @@ class MigrateView(ctk.CTkFrame):
             button_color=T.SUCCESS,
             button_hover_color=T.SUCCESS,
             text_color=T.TEXT_PRIMARY,
-            font=ctk.CTkFont(family="Segoe UI", size=11),
-            height=34,
+            font=ctk.CTkFont(family="Segoe UI", size=13),
+            height=38,
         )
         self._dst_menu.grid(row=0, column=4, sticky="ew", padx=(0, T.PAD_SM),
                             pady=T.PAD)
@@ -128,14 +128,14 @@ class MigrateView(ctk.CTkFrame):
         self._src_path_lbl = ctk.CTkLabel(ctrl, text="",
                                           text_color=T.TEXT_DIM,
                                           font=ctk.CTkFont(family="Consolas",
-                                                           size=9),
+                                                           size=11),
                                           anchor="w")
         self._src_path_lbl.grid(row=1, column=0, columnspan=3, sticky="w",
                                 padx=(T.PAD, T.PAD_SM), pady=(0, T.PAD_SM))
         self._dst_path_lbl = ctk.CTkLabel(ctrl, text="",
                                           text_color=T.TEXT_DIM,
                                           font=ctk.CTkFont(family="Consolas",
-                                                           size=9),
+                                                           size=11),
                                           anchor="w")
         self._dst_path_lbl.grid(row=1, column=3, columnspan=2, sticky="w",
                                 padx=(T.PAD_SM, T.PAD), pady=(0, T.PAD_SM))
@@ -157,7 +157,7 @@ class MigrateView(ctk.CTkFrame):
         self._tree_lbl = ctk.CTkLabel(tree_hdr, text="Select profiles to copy",
                                       text_color=T.TEXT_SECONDARY,
                                       font=ctk.CTkFont(family="Segoe UI",
-                                                       size=10, weight="bold"),
+                                                       size=12, weight="bold"),
                                       anchor="w")
         self._tree_lbl.pack(side="left")
         secondary_button(tree_hdr, "All",
@@ -183,7 +183,7 @@ class MigrateView(ctk.CTkFrame):
         self._count_lbl = ctk.CTkLabel(bot, text="",
                                        text_color=T.TEXT_SECONDARY,
                                        font=ctk.CTkFont(family="Segoe UI",
-                                                        size=10))
+                                                        size=12))
         self._count_lbl.pack(side="left", padx=(T.PAD, 0))
 
         self._log = LogPanel(self, height=110)

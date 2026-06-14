@@ -54,12 +54,12 @@ class SettingsView(ctk.CTkFrame):
                  pady=(T.PAD_LG, 4))
         ctk.CTkLabel(top, text="🔧  Settings",
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+                     font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
                      anchor="w").pack(side="left")
         ctk.CTkLabel(top,
                      text="Edit your sync configuration",
                      text_color=T.TEXT_SECONDARY,
-                     font=ctk.CTkFont(family="Segoe UI", size=11),
+                     font=ctk.CTkFont(family="Segoe UI", size=13),
                      anchor="w").pack(side="left", padx=(T.PAD, 0), pady=(4, 0))
 
         # ── Scrollable form ──
@@ -97,7 +97,7 @@ class SettingsView(ctk.CTkFrame):
         def label(text: str) -> None:
             nonlocal row
             ctk.CTkLabel(f, text=text, text_color=T.TEXT_SECONDARY,
-                         font=ctk.CTkFont(family="Segoe UI", size=10,
+                         font=ctk.CTkFont(family="Segoe UI", size=12,
                                           weight="bold"),
                          anchor="w").grid(row=row, column=0, sticky="w",
                                           pady=(T.PAD_SM, 2))
@@ -109,8 +109,8 @@ class SettingsView(ctk.CTkFrame):
         ctk.CTkEntry(f, textvariable=self._remote_var,
                      fg_color=T.BG_INPUT, border_color=T.BORDER,
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Consolas", size=10),
-                     height=34).grid(row=row, column=0, sticky="ew")
+                     font=ctk.CTkFont(family="Consolas", size=12),
+                     height=38).grid(row=row, column=0, sticky="ew")
         row += 1
 
         sep()
@@ -125,8 +125,8 @@ class SettingsView(ctk.CTkFrame):
         ctk.CTkEntry(dir_f, textvariable=self._repo_dir_var,
                      fg_color=T.BG_INPUT, border_color=T.BORDER,
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Consolas", size=10),
-                     height=34).grid(row=0, column=0, sticky="ew",
+                     font=ctk.CTkFont(family="Consolas", size=12),
+                     height=38).grid(row=0, column=0, sticky="ew",
                                      padx=(0, T.PAD_SM))
         secondary_button(dir_f, "Browse…",
                          self._browse_repo_dir, width=80).grid(row=0, column=1)
@@ -148,13 +148,13 @@ class SettingsView(ctk.CTkFrame):
         ctk.CTkEntry(f, textvariable=self._editor_var,
                      fg_color=T.BG_INPUT, border_color=T.BORDER,
                      text_color=T.TEXT_PRIMARY,
-                     font=ctk.CTkFont(family="Consolas", size=10),
-                     height=34).grid(row=row, column=0, sticky="ew")
+                     font=ctk.CTkFont(family="Consolas", size=12),
+                     height=38).grid(row=row, column=0, sticky="ew")
         row += 1
         ctk.CTkLabel(f,
                      text="  e.g.  code --wait   vim   subl -w   notepad",
                      text_color=T.TEXT_DIM,
-                     font=ctk.CTkFont(family="Segoe UI", size=9),
+                     font=ctk.CTkFont(family="Segoe UI", size=11),
                      anchor="w").grid(row=row, column=0, sticky="w",
                                       pady=(2, 0))
         row += 1
@@ -180,7 +180,7 @@ class SettingsView(ctk.CTkFrame):
                 row_f,
                 text=s.display,
                 variable=en_var,
-                font=ctk.CTkFont(family="Segoe UI", size=11),
+                font=ctk.CTkFont(family="Segoe UI", size=13),
                 text_color=T.SLICER_COLORS.get(s.key, T.TEXT_PRIMARY),
                 checkbox_width=16, checkbox_height=16, corner_radius=3,
                 fg_color=T.ACCENT, hover_color=T.ACCENT_HOVER,
@@ -200,8 +200,8 @@ class SettingsView(ctk.CTkFrame):
                 row_f, textvariable=path_var,
                 fg_color=T.BG_INPUT, border_color=T.BORDER,
                 text_color=T.TEXT_PRIMARY,
-                font=ctk.CTkFont(family="Consolas", size=9),
-                height=30,
+                font=ctk.CTkFont(family="Consolas", size=11),
+                height=34,
             )
             path_entry.grid(row=0, column=2, sticky="ew", padx=(0, T.PAD_SM))
 
