@@ -252,7 +252,7 @@ Supported editors: VS Code (`code --wait`), Vim, Nano, Sublime Text (`subl -w`),
 ## Graphical User Interface (Experimental WIP)
 | Interactive GUI | GUI Sync |
 |:---------------:|:---------------:|
-| ![GUI](screenshots/main-screen.png) | ![SYNC](screenshots/push-screen.png) |
+| ![GUI](screenshots/gui-overview.png) | ![SYNC](screenshots/gui-sync.png) |
 
 We are currently developing a native graphical interface for users who prefer windows over terminals. 
 
